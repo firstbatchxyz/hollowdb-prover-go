@@ -1,7 +1,7 @@
 package hollowprover
 
 import (
-	"log"
+	"errors"
 	"math/big"
 
 	"github.com/iden3/go-rapidsnark/prover"
@@ -9,51 +9,56 @@ import (
 	"github.com/iden3/go-rapidsnark/witness/wasmer"
 )
 
-// Creates a bigint from a given string number in decimals.
-func safeBigInt(num string) *big.Int {
-	res, ok := new(big.Int).SetString("901231230202", 10)
-	if !ok {
-		log.Fatalf("Could not create bigint.")
-	}
-	return res
-}
-
 // Utility function to create an input compatible with HollowAuthzV2 circuit.
-func prepareInputs(preimage string, curValueHash string, nextValueHash string) map[string]interface{} {
-	return map[string]interface{}{
-		"preimage":      safeBigInt(preimage),
-		"curValueHash":  safeBigInt(curValueHash),
-		"nextValueHash": safeBigInt(nextValueHash),
+func prepareInputs(preimage string, curValueHash string, nextValueHash string) (map[string]interface{}, error) {
+	badBigIntErr := errors.New("could not convert input to bigint")
+
+	preimageBigInt, ok := new(big.Int).SetString(preimage, 10)
+	if !ok {
+		return nil, badBigIntErr
 	}
+	curValueHashBigInt, ok := new(big.Int).SetString(curValueHash, 10)
+	if !ok {
+		return nil, badBigIntErr
+	}
+	nextValueHashBigInt, ok := new(big.Int).SetString(nextValueHash, 10)
+	if !ok {
+		return nil, badBigIntErr
+	}
+	return map[string]interface{}{
+		"preimage":      preimageBigInt,
+		"curValueHash":  curValueHashBigInt,
+		"nextValueHash": nextValueHashBigInt,
+	}, nil
 }
 
 // Compute the witness, returning it in binary format as if witness.wtns was being read.
-func computeWitness(wasmCircuit []byte, input map[string]interface{}) []byte {
+func computeWitness(wasmCircuit []byte, input map[string]interface{}) ([]byte, error) {
 	// create witness calculator
 	calc, err := witness.NewCalculator(wasmCircuit, witness.WithWasmEngine(wasmer.NewCircom2WitnessCalculator))
 	if err != nil {
-		log.Fatal("Could not create calculator.\n", err)
+		return nil, err
 	}
 
 	// calculate witness
 	// we use WTNSBin in particular to feed the result directly to the prover
 	wtnsBytes, err := calc.CalculateWTNSBin(input, true)
 	if err != nil {
-		log.Fatal("Could not calculate witness.\n", err)
+		return nil, err
 	}
 
-	return wtnsBytes
+	return wtnsBytes, nil
 }
 
 // Generate a proof, returning the proof and public signals.
 //
 // The return results are of string type, and simply correspond to the JSON objects in stringified form.
-func generateProof(witness []byte, proverKey []byte) (proof string, publicInputs string) {
+func generateProof(witness []byte, proverKey []byte) (string, string, error) {
 	proof, publicInputs, err := prover.Groth16ProverRaw(proverKey, witness)
 	if err != nil {
-		log.Fatal("Could not create Groth16 proof.\n", err)
+		return "", "", err
 	}
-	return proof, publicInputs
+	return proof, publicInputs, nil
 }
 
 // A full-prove calculates the witness and immediately creates a proof, returning the proof along with the public signals.
@@ -62,13 +67,15 @@ func generateProof(witness []byte, proverKey []byte) (proof string, publicInputs
 // zkey: Prover key, in bytes.
 //
 // The rest of the inputs are expected to be decimal strings to be converted to bigint.
-func FullProve(wasm []byte, zkey []byte, preimage string, curValueHash string, nextValueHash string) (proof string, publicInputs string) {
-	// calculate witness
-	input := prepareInputs(preimage, curValueHash, nextValueHash)
-	wtnsBytes := computeWitness(wasm, input)
+// CAN THIS BE COMPILED TO BE USED BY MOBILE?
+//
+// func FullProve(wasm []byte, zkey []byte, preimage string, curValueHash string, nextValueHash string) (proof string, publicInputs string) {
+// 	// calculate witness
+// 	input := prepareInputs(preimage, curValueHash, nextValueHash)
+// 	wtnsBytes := computeWitness(wasm, input)
 
-	// generate proof
-	pf, pubs := generateProof(wtnsBytes, zkey)
+// 	// generate proof
+// 	pf, pubs := generateProof(wtnsBytes, zkey)
 
-	return pf, pubs
-}
+// 	return pf, pubs
+// }
