@@ -28,27 +28,18 @@
 
 ## Usage
 
-We use Go RapidSnark to create witnesses and generate proofs. As for the WASM execution engine, it currently uses [RapidSnark Wasmer](https://github.com/iden3/go-rapidsnark/tree/main/witness/wasmer). To execute Go code, simply:
-
-```sh
-go run ./cmd/main.go
-```
-
-We do not have verifier implemented, as in our scenario we do that in the contract-level with SnarkJS.
+We use [Go RapidSnark](https://github.com/iden3/go-rapidsnark) to create witnesses and generate proofs. As for the WASM execution engine, it currently uses [RapidSnark Wasmer](https://github.com/iden3/go-rapidsnark/tree/main/witness/wasmer).
 
 ## Testing
 
-Running the Go tests will generate a proof and public signals under `out` folder. These can be verified using SnarkJS, if you have it installed globally.
+Running the Go tests will generate a proof and public signals under `out` folder, which can be verified using SnarkJS. You can run all tests with:
 
 ```sh
-# run tests & generate proofs
-go test ./... -test.v
-# or
 yarn test
+```
 
-# verify Groth16 proof
-snarkjs g16v ./circuits/verification_key.json ./out/public.json ./out/proof.json
-# or
-yarn verify
+which will run Go tests, and then run SnarkJS to verify the proofs. To verify generate proofs you can also type `yarn verify`. To run Go tests without SnarkJS, you can do:
 
+```sh
+go test ./... -test.v
 ```

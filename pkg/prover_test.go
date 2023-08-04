@@ -1,34 +1,42 @@
 package hollowprover
 
 import (
-	"log"
-	"os"
 	"testing"
 )
 
-func exportFullproof(proof string, publicInputs string) {
-	log.Println("Exporting proof and public signals.")
-	if err := os.WriteFile("../out/proof.json", []byte(proof), 0644); err != nil {
-		log.Fatal("Could not write proof to file.\n", err)
-	}
-	if err := os.WriteFile("../out/public.json", []byte(publicInputs), 0644); err != nil {
-		log.Fatal("Could not write public signals to file.\n", err)
-	}
-}
-
 func TestProver(t *testing.T) {
 	const wasmPath = "../circuits/hollow-authz.wasm"
-	const pkeyPath = "../circuits/prover_key.zkey"
+	const pkeyPath = "../circuits/prover-key.zkey"
 
+	t.Log("Creating prover.")
 	prover, err := NewProver(wasmPath, pkeyPath)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	proof, publicSignals, err := prover.Prove("901231230202", "3279874327432432781189", "9811872342347234789723")
+	t.Log("Computing preimage from secret.")
+	secret := "my lovely secret key"
+	preimage, err := HashToGroup(secret)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	exportFullproof(proof, publicSignals)
+	t.Log("Generating proof.")
+	proof, publicSignals, err := prover.Prove(preimage, map[string]interface{}{
+		"foo":     123,
+		"hollow":  true,
+		"awesome": "yes",
+	}, map[string]interface{}{
+		"foo":     123789789,
+		"hollow":  false,
+		"awesome": "yes",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("Exporting proof and public signals.")
+	if err := exportFullproof(proof, publicSignals); err != nil {
+		t.Fatal(err)
+	}
 }
