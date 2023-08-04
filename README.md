@@ -54,3 +54,9 @@ which will run Go tests, and then run SnarkJS to verify the proofs. To verify ge
 ```sh
 go test ./test/*.go -test.v
 ```
+
+You can also run benchmarks with:
+
+```sh
+go test -bench=.
+```
