@@ -1,9 +1,9 @@
 {
-  "dependencies": {
+  "devDependencies": {
     "snarkjs": "^0.7.0"
   },
   "scripts": {
-    "test": "go test ./... -test.v",
+    "test": "go test ./test/*.go -test.v",
     "posttest": "yarn verify",
     "verify": "npx snarkjs g16v ./circuits/verification_key.json ./out/public.json ./out/proof.json"
   }

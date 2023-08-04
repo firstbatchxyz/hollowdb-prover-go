@@ -1,4 +1,4 @@
-module hollow-prover
+module hollowdb-prover
 
 go 1.20
 

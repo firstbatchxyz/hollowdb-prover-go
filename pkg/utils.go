@@ -1,11 +1,15 @@
 package hollowprover
 
 import (
-	"os"
+	"encoding/json"
+	"fmt"
+	"math/big"
 
+	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-rapidsnark/prover"
 	"github.com/iden3/go-rapidsnark/witness/v2"
 	"github.com/iden3/go-rapidsnark/witness/wasmer"
+	"golang.org/x/crypto/ripemd160"
 )
 
 // Compute the witness, returning it in binary format as if witness.wtns was being read.
@@ -37,14 +41,44 @@ func generateProof(witness []byte, proverKey []byte) (string, string, error) {
 	return proof, publicInputs, nil
 }
 
-func exportFullproof(proof string, publicInputs string) error {
-	if err := os.WriteFile("../out/proof.json", []byte(proof), 0644); err != nil {
-		return err
+// Compute the key that is the Poseidon hash of some preimage.
+//
+// The returned key is a string in hexadecimal format with 0x prefix.
+func ComputeKey(preimage *big.Int) (string, error) {
+	key, err := poseidon.Hash([]*big.Int{preimage})
+	if err != nil {
+		return "", err
 	}
-	if err := os.WriteFile("../out/public.json", []byte(publicInputs), 0644); err != nil {
-		return err
+
+	return fmt.Sprintf("0x%x", key), nil
+}
+
+// Given an input, stringifies and then hashes it and make sure the result is circuit-friendly for
+// BN254 (see https://docs.circom.io/background/background/#signals-of-a-circuit).
+//
+// Uses Ripemd160 for the hash where 160-bit output is guaranteed to be
+// circuit-friendly (i.e. within the order of the curve's scalar field).
+//
+// If a given value is nil, it will NOT be hashed but instead mapped to 0.
+func HashToGroup(input any) (*big.Int, error) {
+	if input == nil {
+		// nil values are mapped to 0
+		return big.NewInt(0), nil
+	} else {
+		// other values are first "stringified"
+		jsonBytes, err := json.Marshal(input)
+		if err != nil {
+			return nil, err
+		}
+
+		hash := ripemd160.New()
+		if _, err := hash.Write(jsonBytes); err != nil {
+			return nil, err
+		}
+		digest := hash.Sum([]byte{})
+
+		return new(big.Int).SetBytes(digest), nil
 	}
-	return nil
 }
 
 // A full-prove calculates the witness and immediately creates a proof, returning the proof along with the public signals.

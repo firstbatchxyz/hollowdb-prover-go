@@ -1,7 +1,10 @@
-package hollowprover
+package hollowdbprover_test
 
 import (
+	"os"
 	"testing"
+
+	hollowprover "hollowdb-prover/pkg"
 )
 
 func TestProver(t *testing.T) {
@@ -9,14 +12,14 @@ func TestProver(t *testing.T) {
 	const pkeyPath = "../circuits/prover-key.zkey"
 
 	t.Log("Creating prover.")
-	prover, err := NewProver(wasmPath, pkeyPath)
+	prover, err := hollowprover.NewProver(wasmPath, pkeyPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log("Computing preimage from secret.")
 	secret := "my lovely secret key"
-	preimage, err := HashToGroup(secret)
+	preimage, err := hollowprover.HashToGroup(secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,4 +42,14 @@ func TestProver(t *testing.T) {
 	if err := exportFullproof(proof, publicSignals); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func exportFullproof(proof string, publicInputs string) error {
+	if err := os.WriteFile("../out/proof.json", []byte(proof), 0644); err != nil {
+		return err
+	}
+	if err := os.WriteFile("../out/public.json", []byte(publicInputs), 0644); err != nil {
+		return err
+	}
+	return nil
 }
