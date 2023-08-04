@@ -28,9 +28,13 @@
 
 ## Usage
 
-We use [Go RapidSnark](https://github.com/iden3/go-rapidsnark) to create witnesses and generate proofs. As for the WASM execution engine, it currently uses [RapidSnark Wasmer](https://github.com/iden3/go-rapidsnark/tree/main/witness/wasmer).
+We use [Go RapidSnark](https://github.com/iden3/go-rapidsnark) to create witnesses and generate proofs. As for the WASM execution engine, it currently uses [RapidSnark Wasmer](https://github.com/iden3/go-rapidsnark/tree/main/witness/wasmer). To create a prover:
 
-The `Prove` function accepts any type for the current value and next value, where the inputs will be stringified and then hashed. The resulting string should match that of `JSON.stringify` in JavaScript. To this extend, user must be aware of the following in regard of Go's JSON marshalling:
+```go
+prover, err := hollowprover.NewProver(wasmPath, pkeyPath)
+```
+
+The `prove` function accepts any type for the current value and next value, where the inputs will be stringified and then hashed. The resulting string should match that of `JSON.stringify` in JavaScript. To this extend, user must be aware of the following in regard of Go's JSON marshalling:
 
 - Maps have their keys sorted lexicographically
 - Structs keys are marshalled in the order defined in the struct
