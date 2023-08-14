@@ -10,7 +10,7 @@ const bn254PrimeStr = "218882428718392752222464057452572750885483644004160343436
 
 // A Groth16-based zero-knowledge prover utility to be used with HollowDB.
 // Use NewProver function to create it.
-type Prover struct {
+type prover struct {
 	wasmBytes  []byte
 	zkeyBytes  []byte
 	bn254prime *big.Int
@@ -23,7 +23,7 @@ type Prover struct {
 //
 // It is up to you to decide where to place them for your application.
 // For example, in a web-app you may place under the `public` directory.
-func NewProver(wasmPath string, proverKeyPath string) (*Prover, error) {
+func Prover(wasmPath string, proverKeyPath string) (*prover, error) {
 	wasmBytes, err := os.ReadFile(wasmPath)
 	if err != nil {
 		return nil, err
@@ -39,14 +39,14 @@ func NewProver(wasmPath string, proverKeyPath string) (*Prover, error) {
 		return nil, errors.New("could not prepare BN254 prime")
 	}
 
-	return &Prover{wasmBytes, pkeyBytes, bn254Prime}, nil
+	return &prover{wasmBytes, pkeyBytes, bn254Prime}, nil
 }
 
 // Generates a proof, returns (proof, publicSignals).
 //
 // Current value and next value can be anything, they will be hashed-to-group and then ProveHashed
 // will be called to generate the actual proof.
-func (prover *Prover) Prove(preimage *big.Int, curValue any, nextValue any) (string, string, error) {
+func (prover *prover) Prove(preimage *big.Int, curValue any, nextValue any) (string, string, error) {
 	curValueHash, err := HashToGroup(curValue)
 	if err != nil {
 		return "", "", err
@@ -61,7 +61,7 @@ func (prover *Prover) Prove(preimage *big.Int, curValue any, nextValue any) (str
 // Generates a proof, returns (proof, publicSignals).
 //
 // Inputs are assumed to be hashed-to-group.
-func (prover *Prover) ProveHashed(preimage *big.Int, curValueHash *big.Int, nextValueHash *big.Int) (string, string, error) {
+func (prover *prover) ProveHashed(preimage *big.Int, curValueHash *big.Int, nextValueHash *big.Int) (string, string, error) {
 	InputTooLargeErr := errors.New("input larger than BN254 order")
 	if preimage.Cmp(prover.bn254prime) != -1 {
 		return "", "", InputTooLargeErr

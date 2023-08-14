@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	hollowprover "hollowdb-prover/pkg"
+	hollowprover "hollowdb-prover"
 )
 
 func TestComputeKey(t *testing.T) {
@@ -21,6 +21,8 @@ func TestComputeKey(t *testing.T) {
 }
 
 func TestHashToGroup(t *testing.T) {
+	// these test cases were prepared outside in JS
+	// we are checking to see if the results match for Go
 	cases := []struct {
 		input    any
 		expected string

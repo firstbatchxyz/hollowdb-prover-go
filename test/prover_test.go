@@ -5,15 +5,16 @@ import (
 	"os"
 	"testing"
 
-	hollowprover "hollowdb-prover/pkg"
+	hollowprover "hollowdb-prover"
 )
 
 const wasmPath = "../circuits/hollow-authz.wasm"
 const pkeyPath = "../circuits/prover-key.zkey"
 
 func TestProver(t *testing.T) {
+
 	t.Log("Creating prover.")
-	prover, err := hollowprover.NewProver(wasmPath, pkeyPath)
+	prover, err := hollowprover.Prover(wasmPath, pkeyPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +48,7 @@ func TestProver(t *testing.T) {
 
 func BenchmarkProver(b *testing.B) {
 	b.StopTimer()
-	prover, err := hollowprover.NewProver(wasmPath, pkeyPath)
+	prover, err := hollowprover.Prover(wasmPath, pkeyPath)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -61,27 +62,6 @@ func BenchmarkProver(b *testing.B) {
 		}{123}, struct {
 			Foo int `json:"foo"`
 		}{456})
-		b.StopTimer()
-		b.Log(b.Elapsed() - prev)
-	}
-}
-
-func BenchmarkProveHashed(b *testing.B) {
-	b.StopTimer()
-	prover, err := hollowprover.NewProver(wasmPath, pkeyPath)
-	if err != nil {
-		b.Fatal(err)
-	}
-	preimage := big.NewInt(12345)
-
-	for i := 0; i < b.N; i++ {
-		prev := b.Elapsed()
-		b.StartTimer()
-		prover.Prove(preimage, map[string]any{
-			"foo": 234,
-		}, map[string]any{
-			"foo": 456,
-		})
 		b.StopTimer()
 		b.Log(b.Elapsed() - prev)
 	}

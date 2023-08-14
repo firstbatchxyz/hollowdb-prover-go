@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/iden3/go-iden3-crypto/poseidon"
-	"github.com/iden3/go-rapidsnark/prover"
+	// proof & witness calculations
+	rapidsnarkProver "github.com/iden3/go-rapidsnark/prover"
 	"github.com/iden3/go-rapidsnark/witness/v2"
 	"github.com/iden3/go-rapidsnark/witness/wasmer"
+
+	// hashing
+	"github.com/iden3/go-iden3-crypto/poseidon"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -34,7 +37,7 @@ func computeWitness(wasmCircuit []byte, input map[string]interface{}) ([]byte, e
 //
 // The return results are of string type, and simply correspond to the JSON objects in stringified form.
 func generateProof(witness []byte, proverKey []byte) (string, string, error) {
-	proof, publicInputs, err := prover.Groth16ProverRaw(proverKey, witness)
+	proof, publicInputs, err := rapidsnarkProver.Groth16ProverRaw(proverKey, witness)
 	if err != nil {
 		return "", "", err
 	}
