@@ -28,7 +28,7 @@
 
 ## Usage
 
-We use [Go RapidSnark](https://github.com/iden3/go-rapidsnark) to create witnesses and generate proofs. As for the WASM execution engine, it currently uses [RapidSnark Wasmer](https://github.com/iden3/go-rapidsnark/tree/main/witness/wasmer).
+We use [Go RapidSnark](https://github.com/iden3/go-rapidsnark) to create witnesses and generate Groth16 proofs. As for the WASM execution engine, it currently uses [RapidSnark Wasmer](https://github.com/iden3/go-rapidsnark/tree/main/witness/wasmer). The prover does not support PLONK at the moment.
 
 ### Generating Proofs
 
@@ -55,7 +55,9 @@ proof, publicSignals, err := prover.Prove(
 	})
 ```
 
-The user must be aware of the following with regards to Go's JSON marshalling logic:
+The resulting proof and public signals are stringified JSON objects.
+
+The user must be aware of the following with regards to Go's JSON marshalling logic with respect to the user inputs:
 
 - Maps have their keys sorted lexicographically
 - Structs keys are marshalled in the order defined in the struct
@@ -99,7 +101,7 @@ Running the Go tests will generate a proof and public signals under `out` folder
 yarn test
 ```
 
-which will run Go tests, and then run SnarkJS to verify the proofs. To verify generate proofs you can also type `yarn verify`. To run Go tests without SnarkJS, you can do:
+which will run Go tests, and then run SnarkJS to verify the proofs. To verify generated proofs you can also type `yarn verify`. To run Go tests without SnarkJS, you can do:
 
 ```sh
 go test ./test/*.go -test.v
@@ -110,3 +112,10 @@ You can also run benchmarks with:
 ```sh
 go test -bench=.
 ```
+
+## See Also
+
+We have prover implementations in Rust and JavaScript as well:
+
+- [Rust](https://github.com/firstbatchxyz/hollowdb-prover-rust)
+- [JavaScript](https://github.com/firstbatchxyz/hollowdb-prover)

@@ -19,7 +19,7 @@ type prover struct {
 // Creates a Groth16-based zero-knowledge prover utility to be used with HollowDB.
 //
 // You will need to provide paths to a WASM circuit, and a prover key.
-// You can find these files at: https://github.com/firstbatchxyz/hollowdb-prover/tree/master/circuits/groth16
+// You can find these files at: https://github.com/firstbatchxyz/hollowdb-prover-go/tree/master/circuits
 //
 // It is up to you to decide where to place them for your application.
 // For example, in a web-app you may place under the `public` directory.
